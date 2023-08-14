@@ -5,7 +5,6 @@ import { Bridge, Bridge__factory } from '../typechain-types';
 describe('Bridge', () => {
   const [owner] = getSigners(1);
 
-  console.log(owner);
   let bridge: Bridge;
 
   beforeEach(async function () {
