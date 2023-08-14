@@ -1,5 +1,8 @@
 artifacts/
 node_modules/
 cache/
-secrets.json
 .openzeppelin/
+typechain-types/
+.idea/
+.env
+.DS_Store

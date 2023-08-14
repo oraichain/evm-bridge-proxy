@@ -18,7 +18,8 @@ contract Box is OwnableUpgradeable {
         return _value;
     }
 
-    function withdrawFeesCollected() public { //external onlyOwner {
+    function withdrawFeesCollected() public {
+        //external onlyOwner {
         _value = 0;
         emit ValueChanged(_value);
         payable(msg.sender).transfer(address(this).balance);
