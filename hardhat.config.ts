@@ -26,7 +26,11 @@ const config: HardhatUserConfig = {
       accounts: accounts?.map((privateKey) => ({
         privateKey,
         balance: '10000000000000000000000'
-      }))
+      })),
+      forking: {
+        url: `https://eth-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`,
+        blockNumber: 14390000
+      }
     },
     rinkeby: {
       url: `https://eth-rinkeby.alchemyapi.io/v2/${process.env.ALCHEMY_API_KEY}`,
