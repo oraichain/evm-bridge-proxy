@@ -7,7 +7,7 @@ import { ethers } from 'ethers';
 import { extendEnvironment, task, types } from 'hardhat/config';
 import { HardhatNetworkAccountsUserConfig, HardhatUserConfig } from 'hardhat/types';
 
-let accounts: HardhatNetworkAccountsUserConfig | string[] | undefined = undefined;
+let accounts: HardhatNetworkAccountsUserConfig | undefined = undefined;
 
 if (process.env.MNEMONIC) {
   accounts = {
@@ -18,18 +18,23 @@ if (process.env.MNEMONIC) {
     passphrase: ''
   };
 } else if (process.env.PRIVATE_KEY) {
-  accounts = process.env.PRIVATE_KEY.split(/\s*,\s*/);
+  accounts = process.env.PRIVATE_KEY.split(/\s*,\s*/).map((pv) => ({
+    privateKey: pv,
+    balance: '10000000000000000000000'
+  }));
 }
 
 const config: HardhatUserConfig = {
   defaultNetwork: 'hardhat',
 
   networks: {
-    hardhat: {},
+    hardhat: {
+      accounts
+    },
     rinkeby: {
       url: `https://eth-rinkeby.alchemyapi.io/v2/${process.env.ALCHEMY_API_KEY}`,
       // @ts-ignore
-      accounts
+      accounts: accounts.map((a) => a.privateKey)
     }
   },
   paths: {
