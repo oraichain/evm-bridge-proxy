@@ -4,24 +4,18 @@ import '@openzeppelin/hardhat-upgrades';
 import '@typechain/hardhat';
 import '@nomiclabs/hardhat-etherscan';
 import { ethers } from 'ethers';
-import { extendEnvironment, task, types } from 'hardhat/config';
-import { HardhatNetworkAccountsUserConfig, HardhatUserConfig } from 'hardhat/types';
+import { extendEnvironment } from 'hardhat/config';
+import { HardhatUserConfig } from 'hardhat/types';
 
-let accounts: HardhatNetworkAccountsUserConfig | undefined = undefined;
+let accounts: string[] = [];
 
 if (process.env.MNEMONIC) {
-  accounts = {
-    mnemonic: process.env.MNEMONIC,
-    path: "m/44'/60'/0'/0",
-    initialIndex: 0,
-    count: 20,
-    passphrase: ''
-  };
+  accounts = [];
+  for (let i = 0; i < 20; ++i) {
+    accounts.push(ethers.Wallet.fromMnemonic(process.env.MNEMONIC, `m/44'/60'/0'/${i}`).privateKey);
+  }
 } else if (process.env.PRIVATE_KEY) {
-  accounts = process.env.PRIVATE_KEY.split(/\s*,\s*/).map((pv) => ({
-    privateKey: pv,
-    balance: '10000000000000000000000'
-  }));
+  accounts = process.env.PRIVATE_KEY.split(/\s*,\s*/);
 }
 
 const config: HardhatUserConfig = {
@@ -29,12 +23,14 @@ const config: HardhatUserConfig = {
 
   networks: {
     hardhat: {
-      accounts
+      accounts: accounts?.map((privateKey) => ({
+        privateKey,
+        balance: '10000000000000000000000'
+      }))
     },
     rinkeby: {
       url: `https://eth-rinkeby.alchemyapi.io/v2/${process.env.ALCHEMY_API_KEY}`,
-      // @ts-ignore
-      accounts: accounts.map((a) => a.privateKey)
+      accounts
     }
   },
   paths: {
