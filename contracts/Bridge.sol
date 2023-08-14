@@ -26,7 +26,10 @@ contract Bridge is Initializable, OwnableUpgradeable {
         gravityBridgeContract = _gravityBridgeContract;
         swapRouter = _swapRouter;
         wrapNativeAddress = _wrapNativeAddress;
+        initialize();
+    }
 
+    function initialize() public initializer {
         __Ownable_init_unchained();
     }
 
