@@ -8,7 +8,7 @@ import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@uniswap/lib/contracts/libraries/TransferHelper.sol";
 import "@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol";
-import "@oraichain/gravity-contracts/contracts/IGravity.sol";
+import "./IGravity.sol";
 
 contract Bridge is Initializable, OwnableUpgradeable {
     event Amount(string description, uint amount);
