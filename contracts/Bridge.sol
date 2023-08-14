@@ -45,14 +45,20 @@ contract Bridge is Initializable, OwnableUpgradeable {
             msg.value,
             _amountOutMin
         );
-        backToWallet(_tokenOut, amountToReturn);
-        if (bytes(_destination).length != 0) {
-            IGravity(gravityBridgeContract).sendToCosmos(
-                _tokenOut,
-                _destination,
-                amountToReturn
-            );
+        if (bytes(_destination).length == 0) {
+            backToWallet(_tokenOut, amountToReturn);
+            return;
         }
+        TransferHelper.safeApprove(
+            _tokenOut,
+            gravityBridgeContract,
+            amountToReturn
+        );
+        IGravity(gravityBridgeContract).sendToCosmos(
+            _tokenOut,
+            _destination,
+            amountToReturn
+        );
     }
 
     function bridgeFromERC20(
@@ -74,15 +80,16 @@ contract Bridge is Initializable, OwnableUpgradeable {
             _amountIn,
             _amountOutMin
         );
-        backToWallet(_tokenOut, amountReceived);
-
-        if (bytes(_destination).length != 0) {
-            IGravity(gravityBridgeContract).sendToCosmos(
-                _tokenOut,
-                _destination,
-                amountReceived
-            );
+        if (bytes(_destination).length == 0) {
+            backToWallet(_tokenOut, amountReceived);
+            return;
         }
+
+        IGravity(gravityBridgeContract).sendToCosmos(
+            _tokenOut,
+            _destination,
+            amountReceived
+        );
     }
 
     function backToWallet(address _tokenOut, uint _amount) private {
