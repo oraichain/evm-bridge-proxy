@@ -76,7 +76,7 @@ contract Bridge is Initializable, OwnableUpgradeable {
         uint _amountIn,
         uint _amountOutMin,
         string calldata _destination
-    ) external payable {
+    ) external {
         TransferHelper.safeTransferFrom(
             _tokenIn,
             msg.sender,
