@@ -16,7 +16,7 @@ describe("Bridge", () => {
   let bridge: Bridge;
   let oraiContract: IERC20Upgradeable;
   const destination = "0x8754032Ac7966A909e2E753308dF56bb08DabD69";
-  const oraiAddr = "0x4c11249814f11b9346808179cf06e71ac328c1b5";
+  const oraiAddr = "0x4c11249814f11b9346808179Cf06e71ac328c1b5";
   const routerAddr = "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D";
   const wethAddr = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
   const bridgeContract = "0x09Beeedf51AA45718F46837C94712d89B157a9D3";
@@ -67,9 +67,7 @@ describe("Bridge", () => {
       false
     );
 
-    const erc20Events = events?.filter(
-      (e) => e.address.toUpperCase() === oraiAddr.toUpperCase()
-    )!;
+    const erc20Events = events?.filter((e) => e.address === oraiAddr)!;
     // length is 2 because the first call is transferFrom when calling uniswap
     // 2nd one is transfer back to the sender's wallet
     assert.equal(erc20Events.length, 2);
@@ -103,14 +101,13 @@ describe("Bridge", () => {
     // last one is the actual transfer from token called by the gravity bridge contract
     assert.equal(erc20Events.length, 3);
 
-    const approveLog = transferInterface.decodeEventLog(
+    const approveLog = approveInterface.decodeEventLog(
       "Approval",
       erc20Events[1].data,
       erc20Events[1].topics
     );
-    console.log(approveLog);
-    // assert.equal(approveLog[0], bridge.address);
-    // assert.equal(approveLog[1], ownerAddress);
+    assert.equal(approveLog[0], bridge.address);
+    assert.equal(approveLog[1], bridgeContract);
 
     const transferLog = transferInterface.decodeEventLog(
       "Transfer",
@@ -118,7 +115,7 @@ describe("Bridge", () => {
       erc20Events[2].topics
     );
     assert.equal(transferLog[0], bridge.address);
-    assert.equal(transferLog[1], ownerAddress);
+    assert.equal(transferLog[1], bridgeContract);
   });
 
   it("bridgeFromERC20 swap eth to orai then swap orai to weth", async function () {
@@ -144,12 +141,15 @@ describe("Bridge", () => {
   });
 
   it("bridgeFromERC20 swap eth to orai then swap orai to weth then send to cosmos", async function () {
-    const oraiAmount = 1000;
+    let oraiAmount = 1000;
     const nativeEthAmount = "1000000000";
     await bridge.bridgeFromETH(oraiAddr, oraiAmount, "", {
       value: nativeEthAmount,
     });
     await oraiContract.approve(bridge.address, oraiAmount);
+    await bridge.sendToCosmos(oraiAddr, destination, 1);
+    oraiAmount -= 1;
+
     const res = await bridge.bridgeFromERC20(
       oraiAddr,
       wethAddr,
