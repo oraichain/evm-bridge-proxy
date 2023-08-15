@@ -23,6 +23,9 @@ describe("Bridge", () => {
   const gravityInterface = new ethers.utils.Interface([
     "event SendToCosmosEvent(address indexed _tokenContract, address indexed _sender, string _destination, uint256 _amount, uint256 _eventNonce)",
   ]);
+  const approveInterface = new ethers.utils.Interface([
+    "event Approval(address indexed owner, address indexed spender, uint256 value);",
+  ]);
   const transferInterface = new ethers.utils.Interface([
     "event Transfer(address indexed from, address indexed to, uint256 value)",
   ]);
@@ -93,6 +96,29 @@ describe("Bridge", () => {
     );
     assert.strictEqual(destination, eventLog._destination);
     assert.strictEqual(bridge.address, eventLog._sender);
+
+    const erc20Events = events?.filter((e) => e.address === oraiAddr)!;
+    // length is 3 because the first call is the swap call
+    // 2nd one is to approve for the gravity bridge contract to transfer token from the proxy contract
+    // last one is the actual transfer from token called by the gravity bridge contract
+    assert.equal(erc20Events.length, 3);
+
+    const approveLog = transferInterface.decodeEventLog(
+      "Approval",
+      erc20Events[1].data,
+      erc20Events[1].topics
+    );
+    console.log(approveLog);
+    // assert.equal(approveLog[0], bridge.address);
+    // assert.equal(approveLog[1], ownerAddress);
+
+    const transferLog = transferInterface.decodeEventLog(
+      "Transfer",
+      erc20Events[2].data,
+      erc20Events[2].topics
+    );
+    assert.equal(transferLog[0], bridge.address);
+    assert.equal(transferLog[1], ownerAddress);
   });
 
   it("bridgeFromERC20 swap eth to orai then swap orai to weth", async function () {
