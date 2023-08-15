@@ -9,7 +9,7 @@ describe('Bridge', () => {
   let bridge: Bridge;
   let oraiContract: IERC20Upgradeable;
   const destination = '0x8754032Ac7966A909e2E753308dF56bb08DabD69';
-  const oraiAddr = '0x4c11249814f11b9346808179cf06e71ac328c1b5';
+  const oraiAddr = '0x4c11249814f11b9346808179Cf06e71ac328c1b5';
   const routerAddr = '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D';
   const wethAddr = '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2';
   const bridgeContract = '0x09Beeedf51AA45718F46837C94712d89B157a9D3';
@@ -49,10 +49,9 @@ describe('Bridge', () => {
       false
     );
 
-    const erc20Events = events?.filter((e) => e.address.toUpperCase() === oraiAddr.toUpperCase())!;
-    // length is 3 because the first call is transferFrom when calling uniswap
-    // 2nd one is approve when backToWallet
-    // last one is transferFrom when backToWallet
+    const erc20Events = events?.filter((e) => e.address === oraiAddr)!;
+    // length is 2 because the first call is transferFrom when calling uniswap
+    // 2nd one is transfer back to the sender's wallet
     assert.equal(erc20Events.length, 2);
 
     const transferLog = transferInterface.decodeEventLog('Transfer', erc20Events[1].data, erc20Events[1].topics);
