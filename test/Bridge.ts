@@ -45,7 +45,7 @@ describe("Bridge", () => {
     assert.strictEqual(wrapped, wethAddr);
   });
 
-  it("swap eth to orai", async function () {
+  it("bridgeFromETH swap eth to orai", async function () {
     const res = await bridge.bridgeFromETH(oraiAddr, "1", "", {
       value: "1",
     });
@@ -66,7 +66,7 @@ describe("Bridge", () => {
     );
   });
 
-  it("swap eth to orai then send to cosmos", async function () {
+  it("bridgeFromETH swap eth to orai then send to cosmos", async function () {
     const res = await bridge.bridgeFromETH(oraiAddr, 1, destination, {
       value: "1000000000",
     });
@@ -80,5 +80,41 @@ describe("Bridge", () => {
       ),
       true
     );
+  });
+
+  it("bridgeFromERC20 swap eth to orai then swap orai to weth", async function () {
+    const oraiAmount = 1000;
+    const nativeEthAmount = "1000000000";
+    await bridge.bridgeFromETH(oraiAddr, oraiAmount, "", {
+      value: nativeEthAmount,
+    });
+    await oraiContract.approve(bridge.address, oraiAmount);
+    const res = await bridge.bridgeFromERC20(
+      oraiAddr,
+      wethAddr,
+      oraiAmount,
+      1,
+      ""
+    );
+    const { events } = await res.wait();
+    console.log(events);
+  });
+
+  it("bridgeFromERC20 swap eth to orai then swap orai to weth then send to cosmos", async function () {
+    const oraiAmount = 1000;
+    const nativeEthAmount = "1000000000";
+    await bridge.bridgeFromETH(oraiAddr, oraiAmount, "", {
+      value: nativeEthAmount,
+    });
+    await oraiContract.approve(bridge.address, oraiAmount);
+    const res = await bridge.bridgeFromERC20(
+      oraiAddr,
+      wethAddr,
+      oraiAmount,
+      1,
+      destination
+    );
+    const { events } = await res.wait();
+    console.log(events);
   });
 });
