@@ -77,7 +77,7 @@ contract Bridge is Initializable, OwnableUpgradeable {
             _amountOutMin
         );
         if (bytes(_destination).length == 0) {
-            backToWallet(_tokenOut, amountToReturn);
+            TransferHelper.safeTransfer(_tokenOut, msg.sender, amountToReturn);
             return;
         }
 
@@ -104,21 +104,11 @@ contract Bridge is Initializable, OwnableUpgradeable {
             _amountOutMin
         );
         if (bytes(_destination).length == 0) {
-            backToWallet(_tokenOut, amountToReturn);
+            TransferHelper.safeTransfer(_tokenOut, msg.sender, amountToReturn);
             return;
         }
 
         sendToCosmosInternal(_tokenOut, _destination, amountToReturn);
-    }
-
-    function backToWallet(address _tokenOut, uint _amount) private {
-        TransferHelper.safeApprove(_tokenOut, address(this), _amount);
-        TransferHelper.safeTransferFrom(
-            _tokenOut,
-            address(this),
-            msg.sender,
-            _amount
-        );
     }
 
     function swap(
