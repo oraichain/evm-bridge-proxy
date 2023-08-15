@@ -67,9 +67,8 @@ describe("Bridge", () => {
     const erc20Events = events?.filter(
       (e) => e.address.toUpperCase() === oraiAddr.toUpperCase()
     )!;
-    // length is 3 because the first call is transferFrom when calling uniswap
-    // 2nd one is approve when backToWallet
-    // last one is transferFrom when backToWallet
+    // length is 2 because the first call is transferFrom when calling uniswap
+    // 2nd one is transfer back to the sender's wallet
     assert.equal(erc20Events.length, 2);
 
     const transferLog = transferInterface.decodeEventLog(
