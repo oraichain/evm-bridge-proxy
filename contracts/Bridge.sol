@@ -33,6 +33,23 @@ contract Bridge is Initializable, OwnableUpgradeable {
         __Ownable_init_unchained();
     }
 
+    function sendToCosmos(
+        address _tokenContract,
+        string calldata _destination,
+        uint256 _amount
+    ) external {
+        TransferHelper.safeApprove(
+            _tokenContract,
+            gravityBridgeContract,
+            _amount
+        );
+        IGravity(gravityBridgeContract).sendToCosmos(
+            _tokenContract,
+            _destination,
+            _amount
+        );
+    }
+
     function bridgeFromETH(
         address _tokenOut,
         uint _amountOutMin,
@@ -49,16 +66,8 @@ contract Bridge is Initializable, OwnableUpgradeable {
             backToWallet(_tokenOut, amountToReturn);
             return;
         }
-        TransferHelper.safeApprove(
-            _tokenOut,
-            gravityBridgeContract,
-            amountToReturn
-        );
-        IGravity(gravityBridgeContract).sendToCosmos(
-            _tokenOut,
-            _destination,
-            amountToReturn
-        );
+
+        this.sendToCosmos(_tokenOut, _destination, amountToReturn);
     }
 
     function bridgeFromERC20(
@@ -74,22 +83,18 @@ contract Bridge is Initializable, OwnableUpgradeable {
             address(this),
             _amountIn
         );
-        uint amountReceived = swap(
+        uint amountToReturn = swap(
             _tokenIn,
             _tokenOut,
             _amountIn,
             _amountOutMin
         );
         if (bytes(_destination).length == 0) {
-            backToWallet(_tokenOut, amountReceived);
+            backToWallet(_tokenOut, amountToReturn);
             return;
         }
 
-        IGravity(gravityBridgeContract).sendToCosmos(
-            _tokenOut,
-            _destination,
-            amountReceived
-        );
+        this.sendToCosmos(_tokenOut, _destination, amountToReturn);
     }
 
     function backToWallet(address _tokenOut, uint _amount) private {
