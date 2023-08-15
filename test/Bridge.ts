@@ -23,9 +23,6 @@ describe("Bridge", () => {
   const gravityInterface = new ethers.utils.Interface([
     "event SendToCosmosEvent(address indexed _tokenContract, address indexed _sender, string _destination, uint256 _amount, uint256 _eventNonce)",
   ]);
-  const approveInterface = new ethers.utils.Interface([
-    "event Approval(address indexed owner, address indexed spender, uint256 value);",
-  ]);
   const transferInterface = new ethers.utils.Interface([
     "event Transfer(address indexed from, address indexed to, uint256 value)",
   ]);
