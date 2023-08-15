@@ -33,11 +33,11 @@ contract Bridge is Initializable, OwnableUpgradeable {
         __Ownable_init_unchained();
     }
 
-    function sendToCosmos(
+    function sendToCosmosInternal(
         address _tokenContract,
         string calldata _destination,
         uint256 _amount
-    ) external {
+    ) private {
         TransferHelper.safeApprove(
             _tokenContract,
             gravityBridgeContract,
@@ -48,6 +48,20 @@ contract Bridge is Initializable, OwnableUpgradeable {
             _destination,
             _amount
         );
+    }
+
+    function sendToCosmos(
+        address _tokenContract,
+        string calldata _destination,
+        uint256 _amount
+    ) external {
+        TransferHelper.safeTransferFrom(
+            _tokenContract,
+            msg.sender,
+            address(this),
+            _amount
+        );
+        sendToCosmosInternal(_tokenContract, _destination, _amount);
     }
 
     function bridgeFromETH(
@@ -67,7 +81,7 @@ contract Bridge is Initializable, OwnableUpgradeable {
             return;
         }
 
-        this.sendToCosmos(_tokenOut, _destination, amountToReturn);
+        sendToCosmosInternal(_tokenOut, _destination, amountToReturn);
     }
 
     function bridgeFromERC20(
@@ -94,7 +108,7 @@ contract Bridge is Initializable, OwnableUpgradeable {
             return;
         }
 
-        this.sendToCosmos(_tokenOut, _destination, amountToReturn);
+        sendToCosmosInternal(_tokenOut, _destination, amountToReturn);
     }
 
     function backToWallet(address _tokenOut, uint _amount) private {
@@ -141,7 +155,7 @@ contract Bridge is Initializable, OwnableUpgradeable {
         return amountToReturn;
     }
 
-    function sendTokenBalanceToOwner(address tokenToWithdraw) private {
+    function sendTokenBalanceToOwner(address tokenToWithdraw) external {
         ERC20Upgradeable tokenAsContract = ERC20Upgradeable(tokenToWithdraw);
         if (tokenAsContract.balanceOf(address(this)) < 1000) return;
         TransferHelper.safeApprove(
