@@ -12,7 +12,15 @@ describe('Bridge', () => {
   const routerAddr = '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D';
   const wethAddr = '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2';
   const bridgeContract = '0x09Beeedf51AA45718F46837C94712d89B157a9D3';
-  const gravityInterface = new ethers.utils.Interface(['event SendToCosmosEvent(address indexed _tokenContract, address indexed _sender, string _destination, uint256 _amount, uint256 _eventNonce)']);
+  const gravityInterface = new ethers.utils.Interface([
+    `event SendToCosmosEvent(
+      address indexed _tokenContract,
+      address indexed _sender,
+      string _destination,
+      uint256 _amount,
+      uint256 _eventNonce
+    )`
+  ]);
 
   beforeEach(async function () {
     bridge = await new Bridge__factory(owner).deploy(bridgeContract, routerAddr, wethAddr);
