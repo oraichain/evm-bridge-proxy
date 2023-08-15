@@ -79,11 +79,12 @@ describe("Bridge", () => {
     );
     assert.equal(transferLog[0], bridge.address);
     assert.equal(transferLog[1], ownerAddress);
+    assert.equal(BigInt(transferLog[2]).toString(), "733");
   });
 
   it("bridgeFromETH swap eth to orai then send to cosmos", async function () {
     const res = await bridge.bridgeFromETH(oraiAddr, 1, destination, {
-      value: "1000000000",
+      value: "1",
     });
     const { events } = await res.wait();
     const bridgeEvent = events?.find((e) => e.address === bridgeContract)!;
@@ -94,6 +95,7 @@ describe("Bridge", () => {
     );
     assert.strictEqual(destination, eventLog._destination);
     assert.strictEqual(bridge.address, eventLog._sender);
+    assert.equal(BigInt(eventLog[3]).toString(), "733");
 
     const erc20Events = events?.filter((e) => e.address === oraiAddr)!;
     // length is 3 because the first call is the swap call
@@ -116,6 +118,7 @@ describe("Bridge", () => {
     );
     assert.equal(transferLog[0], bridge.address);
     assert.equal(transferLog[1], bridgeContract);
+    assert.equal(BigInt(transferLog[2]).toString(), "733");
   });
 
   it("bridgeFromERC20 swap eth to orai then swap orai to weth", async function () {
@@ -151,6 +154,7 @@ describe("Bridge", () => {
     );
     assert.equal(transferLog[0], bridge.address);
     assert.equal(transferLog[1], ownerAddress);
+    assert.equal(BigInt(transferLog[2]).toString(), "1");
   });
 
   it("bridgeFromERC20 swap eth to orai then swap orai to weth then send to cosmos", async function () {
@@ -179,6 +183,7 @@ describe("Bridge", () => {
     );
     assert.strictEqual(destination, eventLog._destination);
     assert.strictEqual(bridge.address, eventLog._sender);
+    assert.equal(BigInt(eventLog[3]).toString(), "1");
 
     const erc20Events = events?.filter((e) => e.address === wethAddr)!;
     // length is 3 because token out is weth, the first call is the swap call
@@ -201,5 +206,6 @@ describe("Bridge", () => {
     );
     assert.equal(transferLog[0], bridge.address);
     assert.equal(transferLog[1], bridgeContract);
+    assert.equal(BigInt(transferLog[2]).toString(), "1");
   });
 });
