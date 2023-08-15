@@ -3,5 +3,6 @@
 ## 1. Run the e2e test script
 
 ```sh
-yarn test
+yarn test --config hardhat.config.ts
+yarn test --config hardhat-bnb.config.ts
 ```

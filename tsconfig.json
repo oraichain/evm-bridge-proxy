@@ -16,9 +16,11 @@
     "include": [
         "./tasks",
         "./test",
+        "./scripts",
         "./typechain-types",
     ],
     "files": [
         "./hardhat.config.ts",
+        "./hardhat-bnb.config.ts",
     ]
 }

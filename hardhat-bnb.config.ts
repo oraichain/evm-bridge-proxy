@@ -27,22 +27,18 @@ const config: HardhatUserConfig = {
 
   networks: {
     hardhat: {
-      chainId: 31337,
+      chainId: 5600,
       accounts: accounts?.map((privateKey) => ({
         privateKey,
         balance: "10000000000000000000000",
       })),
       forking: {
-        url: "https://rpc.ankr.com/eth",
-        blockNumber: 17914136,
+        url: "https://1rpc.io/bnb",
+        blockNumber: 30871944,
       },
     },
-    rinkeby: {
-      url: `https://eth-rinkeby.alchemyapi.io/v2/${process.env.ALCHEMY_API_KEY}`,
-      accounts,
-    },
-    eth: {
-      url: `https://rpc.ankr.com/eth`,
+    bnb: {
+      url: `https://1rpc.io/bnb`,
       accounts,
     },
   },
