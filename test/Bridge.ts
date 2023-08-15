@@ -138,6 +138,19 @@ describe("Bridge", () => {
       events?.some((e) => e.address === bridgeContract),
       false
     );
+    let erc20Events = events?.filter((e) => e.address === wethAddr)!;
+    // length is 2 because token out is weth, which has only two calls
+    // 1st one when calling uniswap
+    // last one is transfer back to the sender's wallet
+    assert.equal(erc20Events.length, 2);
+
+    const transferLog = transferInterface.decodeEventLog(
+      "Transfer",
+      erc20Events[1].data,
+      erc20Events[1].topics
+    );
+    assert.equal(transferLog[0], bridge.address);
+    assert.equal(transferLog[1], ownerAddress);
   });
 
   it("bridgeFromERC20 swap eth to orai then swap orai to weth then send to cosmos", async function () {
@@ -166,5 +179,27 @@ describe("Bridge", () => {
     );
     assert.strictEqual(destination, eventLog._destination);
     assert.strictEqual(bridge.address, eventLog._sender);
+
+    const erc20Events = events?.filter((e) => e.address === wethAddr)!;
+    // length is 3 because token out is weth, the first call is the swap call
+    // 2nd is to approve for the gravity bridge contract to transfer token from the proxy contract
+    // last one is the actual transfer from token called by the gravity bridge contract
+    assert.equal(erc20Events.length, 3);
+
+    const approveLog = approveInterface.decodeEventLog(
+      "Approval",
+      erc20Events[1].data,
+      erc20Events[1].topics
+    );
+    assert.equal(approveLog[0], bridge.address);
+    assert.equal(approveLog[1], bridgeContract);
+
+    const transferLog = transferInterface.decodeEventLog(
+      "Transfer",
+      erc20Events[2].data,
+      erc20Events[2].topics
+    );
+    assert.equal(transferLog[0], bridge.address);
+    assert.equal(transferLog[1], bridgeContract);
   });
 });
