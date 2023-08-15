@@ -3,7 +3,9 @@
   "scripts": {
     "test": "hardhat test --no-compile",
     "compile": "hardhat compile",
-    "clean": "hardhat clean"
+    "clean": "hardhat clean",
+    "contracts:analyze": "slither contracts --solc-remaps @=node_modules/@",
+    "contracts:size": "hardhat size-contracts --no-compile"
   },
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.2",
@@ -11,6 +13,7 @@
     "@openzeppelin/contracts-upgradeable": "^4.6.0",
     "@openzeppelin/hardhat-upgrades": "^1.12.0",
     "@openzeppelin/test-helpers": "^0.5.15",
+    "hardhat-contract-sizer": "^2.10.0",
     "@typechain/ethers-v5": "^10.1.0",
     "@typechain/hardhat": "^6.1.2",
     "@types/dotenv": "^8.2.0",
