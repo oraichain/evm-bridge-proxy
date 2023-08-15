@@ -1,6 +1,6 @@
 import { ethers, getSigners } from 'hardhat';
 import assert from 'assert';
-import { Bridge, Bridge__factory, IERC20Upgradeable, IERC20Upgradeable__factory, IGravity__factory, IUniswapV2Router02, IUniswapV2Router02__factory } from '../typechain-types';
+import { Bridge, Bridge__factory, IERC20Upgradeable, IERC20Upgradeable__factory, IUniswapV2Router02, IUniswapV2Router02__factory } from '../typechain-types';
 
 describe('Bridge', () => {
   const [owner] = getSigners(1);
@@ -31,10 +31,11 @@ describe('Bridge', () => {
   });
 
   it('swap eth to orai', async function () {
-    await bridge.bridgeFromETH(oraiAddr, '1', '', {
+    const res = await bridge.bridgeFromETH(oraiAddr, '1', '', {
       value: '1'
     });
-    // use should has 1 orai
+
+    // use should have more than 0 orai
     const oraiBalance = await oraiContract.balanceOf(owner.getAddress());
     assert.equal(oraiBalance.gt('0'), true);
   });
@@ -46,7 +47,6 @@ describe('Bridge', () => {
     const { events } = await res.wait();
     const bridgeEvent = events?.find((e) => e.address === bridgeContract)!;
     const eventLog = gravityInterface.decodeEventLog('SendToCosmosEvent', bridgeEvent.data, bridgeEvent.topics);
-    console.log(eventLog);
     assert.strictEqual(destination, eventLog._destination);
     assert.strictEqual(bridge.address, eventLog._sender);
   });
