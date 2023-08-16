@@ -17,6 +17,7 @@
         "./tasks",
         "./test",
         "./scripts",
+        "./constants.ts",
         "./typechain-types",
     ],
     "files": [

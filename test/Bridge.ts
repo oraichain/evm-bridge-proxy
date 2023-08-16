@@ -8,6 +8,7 @@ import {
   IUniswapV2Router02,
   IUniswapV2Router02__factory,
 } from "../typechain-types";
+import { contracts } from "../constants";
 
 describe("Bridge", () => {
   const [owner] = getSigners(1);
@@ -16,10 +17,8 @@ describe("Bridge", () => {
   let bridge: Bridge;
   let oraiContract: IERC20Upgradeable;
   const destination = "0x8754032Ac7966A909e2E753308dF56bb08DabD69";
-  let oraiAddr = "0x4c11249814f11b9346808179Cf06e71ac328c1b5";
-  let routerAddr = "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D";
-  let wrapNativeAddress = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
-  let bridgeContract = "0x09Beeedf51AA45718F46837C94712d89B157a9D3";
+  const { eth, bnb } = contracts;
+  let { oraiAddr, routerAddr, wrapNativeAddr, gravityBridgeContract } = eth;
   const gravityInterface = new ethers.utils.Interface([
     "event SendToCosmosEvent(address indexed _tokenContract, address indexed _sender, string _destination, uint256 _amount, uint256 _eventNonce)",
   ]);
@@ -41,19 +40,19 @@ describe("Bridge", () => {
       case 56: // bnb
       case 5600: // fork bnb
         // bsc
-        oraiAddr = "0xA325Ad6D9c92B55A3Fc5aD7e412B1518F96441C0";
-        routerAddr = "0x10ED43C718714eb63d5aA57B78B54704E256024E";
-        wrapNativeAddress = "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c";
-        bridgeContract = "0xb40C364e70bbD98E8aaab707A41a52A2eAF5733f";
+        oraiAddr = bnb.oraiAddr;
+        routerAddr = bnb.routerAddr;
+        wrapNativeAddr = bnb.wrapNativeAddr;
+        gravityBridgeContract = bnb.gravityBridgeContract;
         break;
       default:
         return;
     }
 
     bridge = await new Bridge__factory(owner).deploy(
-      bridgeContract,
+      gravityBridgeContract,
       routerAddr,
-      wrapNativeAddress
+      wrapNativeAddr
     );
     uniswapRouter = IUniswapV2Router02__factory.connect(routerAddr, owner);
     oraiContract = IERC20Upgradeable__factory.connect(oraiAddr, owner);
@@ -64,9 +63,9 @@ describe("Bridge", () => {
     const contract = await bridge.gravityBridgeContract();
     const router = await bridge.swapRouter();
     const wrapped = await bridge.wrapNativeAddress();
-    assert.strictEqual(contract, bridgeContract);
+    assert.strictEqual(contract, gravityBridgeContract);
     assert.strictEqual(router, routerAddr);
-    assert.strictEqual(wrapped, wrapNativeAddress);
+    assert.strictEqual(wrapped, wrapNativeAddr);
   });
 
   it("bridgeFromETH swap eth to orai", async function () {
@@ -81,7 +80,7 @@ describe("Bridge", () => {
 
     // there should be no gravity contract event
     assert.equal(
-      events?.some((e) => e.address === bridgeContract),
+      events?.some((e) => e.address === gravityBridgeContract),
       false
     );
 
@@ -105,7 +104,9 @@ describe("Bridge", () => {
       value: "1",
     });
     const { events } = await res.wait();
-    const bridgeEvent = events?.find((e) => e.address === bridgeContract)!;
+    const bridgeEvent = events?.find(
+      (e) => e.address === gravityBridgeContract
+    )!;
     const eventLog = gravityInterface.decodeEventLog(
       "SendToCosmosEvent",
       bridgeEvent.data,
@@ -127,7 +128,7 @@ describe("Bridge", () => {
       erc20Events[1].topics
     );
     assert.equal(approveLog[0], bridge.address);
-    assert.equal(approveLog[1], bridgeContract);
+    assert.equal(approveLog[1], gravityBridgeContract);
 
     const transferLog = transferInterface.decodeEventLog(
       "Transfer",
@@ -135,7 +136,7 @@ describe("Bridge", () => {
       erc20Events[2].topics
     );
     assert.equal(transferLog[0], bridge.address);
-    assert.equal(transferLog[1], bridgeContract);
+    assert.equal(transferLog[1], gravityBridgeContract);
     // assert.equal(BigInt(transferLog[2]).toString(), "733");
   });
 
@@ -148,7 +149,7 @@ describe("Bridge", () => {
     await oraiContract.approve(bridge.address, oraiAmount);
     const res = await bridge.bridgeFromERC20(
       oraiAddr,
-      wrapNativeAddress,
+      wrapNativeAddr,
       oraiAmount,
       1,
       ""
@@ -156,10 +157,10 @@ describe("Bridge", () => {
     const { events } = await res.wait();
     // there should be no gravity contract event
     assert.equal(
-      events?.some((e) => e.address === bridgeContract),
+      events?.some((e) => e.address === gravityBridgeContract),
       false
     );
-    let erc20Events = events?.filter((e) => e.address === wrapNativeAddress)!;
+    let erc20Events = events?.filter((e) => e.address === wrapNativeAddr)!;
     // length is 2 because token out is weth, which has only two calls
     // 1st one when calling uniswap
     // last one is transfer back to the sender's wallet
@@ -187,13 +188,15 @@ describe("Bridge", () => {
 
     const res = await bridge.bridgeFromERC20(
       oraiAddr,
-      wrapNativeAddress,
+      wrapNativeAddr,
       oraiAmount,
       1,
       destination
     );
     const { events } = await res.wait();
-    const bridgeEvent = events?.find((e) => e.address === bridgeContract)!;
+    const bridgeEvent = events?.find(
+      (e) => e.address === gravityBridgeContract
+    )!;
     const eventLog = gravityInterface.decodeEventLog(
       "SendToCosmosEvent",
       bridgeEvent.data,
@@ -203,7 +206,7 @@ describe("Bridge", () => {
     assert.strictEqual(bridge.address, eventLog._sender);
     // assert.equal(BigInt(eventLog[3]).toString(), "1");
 
-    const erc20Events = events?.filter((e) => e.address === wrapNativeAddress)!;
+    const erc20Events = events?.filter((e) => e.address === wrapNativeAddr)!;
     // length is 3 because token out is weth, the first call is the swap call
     // 2nd is to approve for the gravity bridge contract to transfer token from the proxy contract
     // last one is the actual transfer from token called by the gravity bridge contract
@@ -215,7 +218,7 @@ describe("Bridge", () => {
       erc20Events[1].topics
     );
     assert.equal(approveLog[0], bridge.address);
-    assert.equal(approveLog[1], bridgeContract);
+    assert.equal(approveLog[1], gravityBridgeContract);
 
     const transferLog = transferInterface.decodeEventLog(
       "Transfer",
@@ -223,7 +226,7 @@ describe("Bridge", () => {
       erc20Events[2].topics
     );
     assert.equal(transferLog[0], bridge.address);
-    assert.equal(transferLog[1], bridgeContract);
+    assert.equal(transferLog[1], gravityBridgeContract);
     // assert.equal(BigInt(transferLog[2]).toString(), "1");
   });
 });
