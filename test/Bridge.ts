@@ -229,4 +229,46 @@ describe("Bridge", () => {
     assert.equal(transferLog[1], gravityBridgeContract);
     // assert.equal(BigInt(transferLog[2]).toString(), "1");
   });
+
+  async function simulateRoute(
+    route: string[],
+    simulateAmount: string
+  ): Promise<string> {
+    const swapRouterV2 = IUniswapV2Router02__factory.connect(routerAddr, owner);
+    try {
+      let outs = await swapRouterV2.getAmountsOut(simulateAmount, route);
+      console.log("route out amount: ", route, outs.slice(-1)[0]);
+      return outs.slice(-1)[0].toString();
+    } catch (error) {
+      console.log("error simulating: ", error);
+      return "0";
+    }
+  }
+
+  it("simulate-bnb-swap-orai-to-airi", async () => {
+    const chainId = await owner.getChainId();
+    if (chainId === 56) {
+      const simulateAmount = BigInt(1 * 10 ** 18).toString();
+      assert.equal(
+        await simulateRoute(
+          [contracts.bnb.airiAddr, wrapNativeAddr],
+          simulateAmount
+        ),
+        "11522495640377"
+      );
+      assert.equal(
+        await simulateRoute([oraiAddr, wrapNativeAddr], simulateAmount),
+        "9683120229072611"
+      );
+      assert.equal(
+        await simulateRoute(
+          [oraiAddr, wrapNativeAddr, contracts.bnb.airiAddr],
+          simulateAmount
+        ),
+        "836163475812578803334"
+      );
+    } else {
+      // dont care. this test is for bsc
+    }
+  });
 });

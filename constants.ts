@@ -19,6 +19,9 @@ export const contracts = {
     oraiAddr: ethers.utils.getAddress(
       "0xA325Ad6D9c92B55A3Fc5aD7e412B1518F96441C0"
     ),
+    airiAddr: ethers.utils.getAddress(
+      "0x7e2A35C746F2f7C240B664F1Da4DD100141AE71F"
+    ),
     routerAddr: ethers.utils.getAddress(
       "0x10ED43C718714eb63d5aA57B78B54704E256024E"
     ), // uniswap router / pancakeswap

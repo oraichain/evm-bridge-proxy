@@ -30,7 +30,7 @@ const config: HardhatUserConfig = {
       chainId: 31337,
       accounts: accounts?.map((privateKey) => ({
         privateKey,
-        balance: "10000000000000000000000",
+        balance: "1000000000000000000000000000000",
       })),
       forking: {
         url: "https://rpc.ankr.com/eth",
