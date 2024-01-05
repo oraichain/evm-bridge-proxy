@@ -1,6 +1,9 @@
 import { ethers } from "hardhat";
 
 export const contracts = {
+  proxyContract: ethers.utils.getAddress(
+    "0x9a0A02B296240D2620E339cCDE386Ff612f07Be5"
+  ),
   eth: {
     oraiAddr: ethers.utils.getAddress(
       "0x4c11249814f11b9346808179Cf06e71ac328c1b5"

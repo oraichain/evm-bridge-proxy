@@ -1,10 +1,9 @@
 import { ethers, getSigners } from "hardhat";
 import { Bridge__factory } from "../typechain-types";
+import { contracts } from "../constants";
 
 // mainnet eth & bsc
-const proxyContract = ethers.utils.getAddress(
-  "0x758191e89ff9E898D884ca3426e486e5d8476A44"
-);
+const { proxyContract } = contracts;
 
 async function main() {
   const [owner] = getSigners(1);

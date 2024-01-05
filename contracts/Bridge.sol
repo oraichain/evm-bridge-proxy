@@ -70,18 +70,23 @@ contract Bridge is Initializable, OwnableUpgradeable {
         string calldata _destination
     ) external payable {
         AddressUpgradeable.sendValue(payable(wrapNativeAddress), msg.value); //wrap ETH as WETH (comes back automatically)
-        uint amountToReturn = swap(
+        // case 1: token out = wrapNativeAddress -> we don't swap anything, keep the same msg.value sent as it maps 1-1 with the native coin.
+        uint bridgeAmount = msg.value;
+        // case 2: token out is not wrap native -> we swap and update amount out
+        if (_tokenOut != wrapNativeAddress) {
+            bridgeAmount = swap(
             wrapNativeAddress,
             _tokenOut,
             msg.value,
             _amountOutMin
         );
+        }
         if (bytes(_destination).length == 0) {
-            TransferHelper.safeTransfer(_tokenOut, msg.sender, amountToReturn);
+            TransferHelper.safeTransfer(_tokenOut, msg.sender, bridgeAmount);
             return;
         }
 
-        sendToCosmosInternal(_tokenOut, _destination, amountToReturn);
+        sendToCosmosInternal(_tokenOut, _destination, bridgeAmount);
     }
 
     function bridgeFromERC20(
@@ -147,7 +152,6 @@ contract Bridge is Initializable, OwnableUpgradeable {
 
     function sendTokenBalanceToOwner(address tokenToWithdraw) external {
         ERC20Upgradeable tokenAsContract = ERC20Upgradeable(tokenToWithdraw);
-        if (tokenAsContract.balanceOf(address(this)) < 1000) return;
         TransferHelper.safeApprove(
             tokenToWithdraw,
             address(this),

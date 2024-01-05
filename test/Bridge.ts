@@ -16,6 +16,7 @@ describe("Bridge", () => {
   let uniswapRouter: IUniswapV2Router02;
   let bridge: Bridge;
   let oraiContract: IERC20Upgradeable;
+  let wrapNativeContract: IERC20Upgradeable;
   const destination = "0x8754032Ac7966A909e2E753308dF56bb08DabD69";
   const { eth, bnb } = contracts;
   let { oraiAddr, routerAddr, wrapNativeAddr, gravityBridgeContract } = eth;
@@ -56,6 +57,10 @@ describe("Bridge", () => {
     );
     uniswapRouter = IUniswapV2Router02__factory.connect(routerAddr, owner);
     oraiContract = IERC20Upgradeable__factory.connect(oraiAddr, owner);
+    wrapNativeContract = IERC20Upgradeable__factory.connect(
+      wrapNativeAddr,
+      owner
+    );
   });
 
   it("retrieve returns contract addresses", async function () {
@@ -96,7 +101,7 @@ describe("Bridge", () => {
     );
     assert.equal(transferLog[0], bridge.address);
     assert.equal(transferLog[1], ownerAddress);
-    // assert.equal(BigInt(transferLog[2]).toString(), "733");
+    assert.equal(BigInt(transferLog[2]).toString(), "733");
   });
 
   it("bridgeFromETH swap eth to orai then send to cosmos", async function () {
@@ -137,7 +142,83 @@ describe("Bridge", () => {
     );
     assert.equal(transferLog[0], bridge.address);
     assert.equal(transferLog[1], gravityBridgeContract);
-    // assert.equal(BigInt(transferLog[2]).toString(), "733");
+    // magic number 733. At the fork height, 1 amount bnb / eth = 733 orai
+    assert.equal(transferLog[2], BigInt(733));
+  });
+
+  it("bridgeFromETH swap eth to weth then send weth to cosmos", async function () {
+    const res = await bridge.bridgeFromETH(wrapNativeAddr, 1000, destination, {
+      value: "1",
+    });
+    const { events } = await res.wait();
+    const bridgeEvent = events?.find(
+      (e) => e.address === gravityBridgeContract
+    )!;
+    const eventLog = gravityInterface.decodeEventLog(
+      "SendToCosmosEvent",
+      bridgeEvent.data,
+      bridgeEvent.topics
+    );
+    assert.strictEqual(destination, eventLog._destination);
+    assert.strictEqual(bridge.address, eventLog._sender);
+    // assert.equal(BigInt(eventLog[3]).toString(), "733");
+
+    const erc20Events = events?.filter((e) => e.address === wrapNativeAddr)!;
+    // length is 3 because the first call is the swap call
+    // 2nd one is to approve for the gravity bridge contract to transfer token from the proxy contract
+    // last one is the actual transfer from token called by the gravity bridge contract
+    // assert.equal(erc20Events.length, 3);
+
+    const approveLog = approveInterface.decodeEventLog(
+      "Approval",
+      erc20Events[1].data,
+      erc20Events[1].topics
+    );
+    assert.equal(approveLog[0], bridge.address);
+    assert.equal(approveLog[1], gravityBridgeContract);
+
+    const transferLog = transferInterface.decodeEventLog(
+      "Transfer",
+      erc20Events[2].data,
+      erc20Events[2].topics
+    );
+    assert.equal(transferLog[0], bridge.address);
+    assert.equal(transferLog[1], gravityBridgeContract);
+    assert.equal(transferLog[2], BigInt(1));
+  });
+
+  it("bridgeFromETH swap eth to weth", async function () {
+    // use should have more than 0 orai
+    let wrapNativeBalance = await wrapNativeContract.balanceOf(ownerAddress);
+    assert.equal(wrapNativeBalance.eq("0"), true);
+
+    const res = await bridge.bridgeFromETH(wrapNativeAddr, "10000", "", {
+      value: "1",
+    });
+    const { events } = await res.wait();
+
+    // there should be no gravity contract event
+    assert.equal(
+      events?.some((e) => e.address === gravityBridgeContract),
+      false
+    );
+
+    const erc20Events = events?.filter((e) => e.address === wrapNativeAddr)!;
+    // length is 2 because the first call is transferFrom when calling uniswap
+    // 2nd one is transfer back to the sender's wallet
+    assert.equal(erc20Events.length, 2);
+
+    const transferLog = transferInterface.decodeEventLog(
+      "Transfer",
+      erc20Events[1].data,
+      erc20Events[1].topics
+    );
+    assert.equal(transferLog[0], bridge.address);
+    assert.equal(transferLog[1], ownerAddress);
+    assert.equal(transferLog[2], BigInt(1));
+
+    wrapNativeBalance = await wrapNativeContract.balanceOf(ownerAddress);
+    assert.equal(wrapNativeBalance.eq("1"), true);
   });
 
   it("bridgeFromERC20 swap eth to orai then swap orai to weth", async function () {
