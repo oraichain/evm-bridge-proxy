@@ -1,7 +1,7 @@
 import { ethers } from "hardhat";
 
 export const contracts = {
-  bridge: "0x758191e89ff9E898D884ca3426e486e5d8476A44",
+  proxyContract: "0x758191e89ff9E898D884ca3426e486e5d8476A44",
   eth: {
     oraiAddr: ethers.utils.getAddress(
       "0x4c11249814f11b9346808179Cf06e71ac328c1b5"
