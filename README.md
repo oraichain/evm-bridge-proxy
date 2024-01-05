@@ -15,7 +15,7 @@ yarn && yarn compile
 # To deploy the contract on the Rinkeby testnet for the first time
 
 ```bash
-yarn hardhat run --network rinkeby scripts/deploy.js
+yarn hardhat run --network rinkeby --config hardhat.config.ts scripts/deploy.js
 ```
 
 Take note of the contract address for interacting with the smart contract from now on
