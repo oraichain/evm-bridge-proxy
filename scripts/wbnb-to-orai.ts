@@ -12,7 +12,7 @@ async function main() {
   const res = await bridge.bridgeFromETH(
     wrapNativeAddr,
     "1",
-    "channel-29/orai1g4h64yjt0fvzv5v2j8tyfnpe5kmnetejvfgs7g",
+    "channel-1/orai19a4cjjdlx5fpsgfz7t4tgh6kn6heqg87xhfqth",
     {
       value: "1",
     }
