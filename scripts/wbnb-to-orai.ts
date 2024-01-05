@@ -11,7 +11,7 @@ async function main() {
   const bridge = new Bridge__factory(owner).attach(proxyContract);
   const res = await bridge.bridgeFromETH(
     wrapNativeAddr,
-    "1",
+    "10",
     "channel-1/orai19a4cjjdlx5fpsgfz7t4tgh6kn6heqg87xhfqth",
     {
       value: "1",
