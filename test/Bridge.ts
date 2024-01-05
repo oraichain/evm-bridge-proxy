@@ -142,7 +142,7 @@ describe("Bridge", () => {
   });
 
   it("bridgeFromETH swap eth to weth then send weth to cosmos", async function () {
-    const res = await bridge.bridgeFromETH(wrapNativeAddr, 1, destination, {
+    const res = await bridge.bridgeFromETH(wrapNativeAddr, 1000, destination, {
       value: "1",
     });
     const { events } = await res.wait();
