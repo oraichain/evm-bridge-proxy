@@ -20,7 +20,7 @@ async function main() {
       gravityBridgeContract = bnb.gravityBridgeContract;
       break;
     default:
-      return;
+      break;
   }
   const deploy = await new Bridge__factory(owner).deploy(
     gravityBridgeContract,
