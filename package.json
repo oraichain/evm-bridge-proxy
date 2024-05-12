@@ -2,7 +2,7 @@
   "name": "@oraichain/bridge-proxy",
   "scripts": {
     "test": "hardhat test --no-compile",
-    "erc20-deploy": "ts-node scripts/erc20-deploy.ts",
+    "erc20-deploy": "hardhat run scripts/erc20-deploy.ts --network testing",
     "compile": "hardhat compile",
     "clean": "hardhat clean",
     "contracts:analyze": "slither contracts --solc-remaps @=node_modules/@",
