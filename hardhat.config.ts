@@ -26,6 +26,10 @@ const config: HardhatUserConfig = {
   defaultNetwork: "hardhat",
 
   networks: {
+    testing: {
+      url: "http://localhost:8545",
+      accounts,
+    },
     hardhat: {
       chainId: 31337,
       accounts: accounts?.map((privateKey) => ({

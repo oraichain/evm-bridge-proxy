@@ -9,9 +9,7 @@ async function main() {
     ethers.BigNumber.from("10000000000000000000000000")
   );
   const result = await deploy.deployed();
-  console.log("deployed: ", result.address);
-  const supply = await result.totalSupply();
-  console.log("total supply: ", supply.toString());
+  console.log(result.address);
 }
 
 main()
