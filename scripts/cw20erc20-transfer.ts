@@ -4,8 +4,8 @@ import { CW20ERC20Token__factory } from "../typechain-types";
 async function main() {
   const erc20Address = process.env.ERC20_ADDRESS!;
   const [owner] = getSigners(1);
-  const deployed = new CW20ERC20Token__factory(owner).attach(erc20Address);
-  await deployed.transfer("0x9000000000000000000000000000000000000001", "1000");
+  const deployed = CW20ERC20Token__factory.connect(erc20Address, owner);
+  await deployed.transfer(erc20Address, "1");
 }
 
 main()

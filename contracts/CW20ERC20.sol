@@ -57,11 +57,11 @@ contract CW20ERC20Token is ERC20, Ownable {
 			string memory recipient = _formatPayload("recipient", _doubleQuotes(AddrPrecompile.getCosmosAddr(to)));
 			string memory amt = _formatPayload("amount", _doubleQuotes(Strings.toString(amount)));
 			string memory req = _curlyBrace(_formatPayload("transfer", _curlyBrace(_join(recipient, amt, ","))));
-			_execute(bytes(req));
+			_execute(req);
 			return true;
     }
 
-	function _execute(bytes memory req) internal returns (bytes memory) {
+	function _execute(string memory req) internal returns (bytes memory) {
 			(bool success, bytes memory ret) = WASMD_PRECOMPILE_ADDRESS.delegatecall(
 					abi.encodeWithSignature(
 							"execute(string,bytes,bytes)",
@@ -70,7 +70,7 @@ contract CW20ERC20Token is ERC20, Ownable {
 							bytes("[]")
 					)
 			);
-			require(success, "CosmWasm execute failed");
+			require(success, string.concat("CosmWasm execute failed. CosmWasm instruction: ",req));
 			return ret;
 	}
 
