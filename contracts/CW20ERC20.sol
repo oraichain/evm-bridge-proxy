@@ -37,6 +37,14 @@ contract CW20ERC20Token is ERC20, Ownable {
 			return uint8(JsonPrecompile.extractAsUint256(response, "decimals"));
 	}
 
+	function balanceOf(address owner) public view override returns (uint256) {
+			require(owner != address(0), "ERC20: balance query for the zero address");
+			string memory ownerAddr = _formatPayload("address", _doubleQuotes(AddrPrecompile.getCosmosAddr(owner)));
+			string memory req = _curlyBrace(_formatPayload("balance", _curlyBrace(ownerAddr)));
+			bytes memory response = WasmdPrecompile.query(Cw20Address, bytes(req));
+			return JsonPrecompile.extractAsUint256(response, "balance");
+    }
+
 	function totalSupply() public view override returns (uint256) {
 			string memory req = _curlyBrace(_formatPayload("token_info", "{}"));
 			bytes memory response = WasmdPrecompile.query(Cw20Address, bytes(req));
