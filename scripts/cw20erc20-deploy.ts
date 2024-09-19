@@ -4,12 +4,11 @@ import { CW20ERC20Token__factory } from "../typechain-types";
 async function main() {
   const cw20Address = process.env.CW20_ADDRESS!;
   const [owner] = getSigners(1);
-  console.log("cw20 address:", cw20Address)
+  console.log("cw20 address:", cw20Address);
   const deploy = await new CW20ERC20Token__factory(owner).deploy(
     cw20Address,
     "USDT token",
-    "USDT",
-    ethers.BigNumber.from("10000000000000000000000000")
+    "USDT"
   );
   const result = await deploy.deployed();
   console.log(result.address);

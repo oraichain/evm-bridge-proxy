@@ -18,12 +18,11 @@ contract CW20ERC20Token is ERC20, Ownable {
 	IAddr public AddrPrecompile;
 	string public Cw20Address;
 
-	constructor(string memory Cw20Address_, string memory _name, string memory _symbol, uint256 initialSupply) ERC20(_name, _symbol) {
+	constructor(string memory Cw20Address_, string memory _name, string memory _symbol) ERC20(_name, _symbol) {
 		WasmdPrecompile = IWasmd(WASMD_PRECOMPILE_ADDRESS);
 		JsonPrecompile = IJson(JSON_PRECOMPILE_ADDRESS);
 		AddrPrecompile = IAddr(ADDR_PRECOMPILE_ADDRESS);
 		Cw20Address = Cw20Address_;
-		_mint(msg.sender, initialSupply);
 	}
 
 	function mint(address account, uint256 amount) external onlyOwner {
