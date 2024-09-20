@@ -11,7 +11,6 @@ IBank constant BANK_CONTRACT = IBank(
 interface IBank {
     // Transactions
     function send(
-        address fromAddress,
         address toAddress,
         string memory denom,
         uint256 amount

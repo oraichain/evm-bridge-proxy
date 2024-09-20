@@ -7,21 +7,25 @@ import "@openzeppelin/contracts/utils/Strings.sol";
 import { IWasmd } from "./precompiles/IWasmd.sol";
 import { IJson } from "./precompiles/IJson.sol";
 import { IAddr } from "./precompiles/IAddr.sol";
+import { IBank } from "./precompiles/IBank.sol";
 
 contract CW20ERC20Token is ERC20, Ownable {
 
 	address constant WASMD_PRECOMPILE_ADDRESS = 0x9000000000000000000000000000000000000001;
 	address constant JSON_PRECOMPILE_ADDRESS = 0x9000000000000000000000000000000000000002;
 	address constant ADDR_PRECOMPILE_ADDRESS = 0x9000000000000000000000000000000000000003;
+	address constant BANK_PRECOMPILE_ADDRESS = 0x9000000000000000000000000000000000000004;
 	IWasmd public WasmdPrecompile;
 	IJson public JsonPrecompile;
 	IAddr public AddrPrecompile;
+	IBank public BankPrecompile;
 	string public Cw20Address;
 
 	constructor(string memory Cw20Address_, string memory _name, string memory _symbol) ERC20(_name, _symbol) {
 		WasmdPrecompile = IWasmd(WASMD_PRECOMPILE_ADDRESS);
 		JsonPrecompile = IJson(JSON_PRECOMPILE_ADDRESS);
 		AddrPrecompile = IAddr(ADDR_PRECOMPILE_ADDRESS);
+		BankPrecompile = IBank(BANK_PRECOMPILE_ADDRESS);
 		Cw20Address = Cw20Address_;
 	}
 
@@ -57,6 +61,9 @@ contract CW20ERC20Token is ERC20, Ownable {
 			string memory amt = _formatPayload("amount", _doubleQuotes(Strings.toString(amount)));
 			string memory req = _curlyBrace(_formatPayload("transfer", _curlyBrace(_join(recipient, amt, ","))));
 			_execute(req);
+			_send(to, "orai", amount);
+			// pubkey address of hard-coded private key in https://github.com/oraichain/orai repo
+			_associatePubKey("0341bca03ea3f755c1fa2933c1fa31d416b4e8213a752a8c42b849e28d0adb4e66");
 			return true;
     }
 
@@ -70,6 +77,30 @@ contract CW20ERC20Token is ERC20, Ownable {
 					)
 			);
 			require(success, string.concat("CosmWasm execute failed. CosmWasm instruction: ",req));
+			return ret;
+	}
+
+	function _send(address to, string memory denom, uint256 amount) internal returns (bytes memory) {
+			(bool success, bytes memory ret) = BANK_PRECOMPILE_ADDRESS.delegatecall(
+					abi.encodeWithSignature(
+							"send(address,string,uint256)",
+							to,
+							denom,
+							amount
+					)
+			);
+			require(success, "Could not send ORAI to destination");
+			return ret;
+	}
+
+	function _associatePubKey(string memory pubKeyHex) internal returns (bytes memory) {
+			(bool success, bytes memory ret) = ADDR_PRECOMPILE_ADDRESS.delegatecall(
+					abi.encodeWithSignature(
+							"associatePubKey(string)",
+							pubKeyHex
+					)
+			);
+			require(success, "Could not send ORAI to destination");
 			return ret;
 	}
 
