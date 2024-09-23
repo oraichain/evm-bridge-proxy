@@ -101,7 +101,7 @@ contract CW20ERC20Token is ERC20, Ownable {
     ) public view override returns (uint256) {
         require(
             owner != address(0),
-            "ERC20: balance query for the zero address"
+            "ERC20: allowance query for the zero address"
         );
         string memory ownerAddr = _formatPayload(
             "owner",
@@ -119,6 +119,30 @@ contract CW20ERC20Token is ERC20, Ownable {
         );
         bytes memory response = WasmdPrecompile.query(Cw20Address, bytes(req));
         return JsonPrecompile.extractAsUint256(response, "allowance");
+    }
+
+    function approve(
+        address spender,
+        uint256 amount
+    ) public override returns (bool) {
+        require(spender != address(0), "ERC20: approve to the zero address");
+        string memory spenderAddr = _formatPayload(
+            "spender",
+            _doubleQuotes(AddrPrecompile.getCosmosAddr(spender))
+        );
+        string memory amt = _formatPayload(
+            "amount",
+            _doubleQuotes(Strings.toString(amount))
+        );
+        string memory req = _curlyBrace(
+            _formatPayload(
+                "increase_allowance",
+                _curlyBrace(_join(spenderAddr, amt, ","))
+            )
+        );
+        _execute(req);
+
+        return true;
     }
 
     function _execute(string memory req) internal returns (bytes memory) {
