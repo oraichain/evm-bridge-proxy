@@ -8,7 +8,8 @@ const main = async () => {
     value: ethers.utils.parseUnits("10", "ether"),
   });
 
-  console.log("tx: ", tx);
+  const receipt = await tx.wait();
+  console.log("receipt: ", receipt);
 };
 
 main()
