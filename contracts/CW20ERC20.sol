@@ -37,7 +37,19 @@ contract CW20ERC20Token is ERC20, Ownable {
     }
 
     function mint(address account, uint256 amount) external onlyOwner {
-        _mint(account, amount);
+        require(account != address(0), "ERC20: mint to  the zero address");
+        string memory recipient = _formatPayload(
+            "recipient",
+            _doubleQuotes(AddrPrecompile.getCosmosAddr(account))
+        );
+        string memory amt = _formatPayload(
+            "amount",
+            _doubleQuotes(Strings.toString(amount))
+        );
+        string memory req = _curlyBrace(
+            _formatPayload("mint", _curlyBrace(_join(recipient, amt, ",")))
+        );
+        _execute(req);
     }
 
     // Queries
@@ -87,11 +99,6 @@ contract CW20ERC20Token is ERC20, Ownable {
             _formatPayload("transfer", _curlyBrace(_join(recipient, amt, ",")))
         );
         _execute(req);
-        _send(to, "orai", amount);
-        // pubkey address of hard-coded private key in https://github.com/oraichain/orai repo
-        _associatePubKey(
-            "0341bca03ea3f755c1fa2933c1fa31d416b4e8213a752a8c42b849e28d0adb4e66"
-        );
         return true;
     }
 
@@ -121,15 +128,65 @@ contract CW20ERC20Token is ERC20, Ownable {
         return JsonPrecompile.extractAsUint256(response, "allowance");
     }
 
-    function approve(
-        address spender,
+    function transferFrom(
+        address from,
+        address to,
         uint256 amount
     ) public override returns (bool) {
+        require(from != address(0), "ERC20: transfer from the zero address");
+        require(to != address(0), "ERC20: transfer to the zero address");
+        string memory fromAddr = _formatPayload(
+            "owner",
+            _doubleQuotes(AddrPrecompile.getCosmosAddr(from))
+        );
+        string memory toAddr = _formatPayload(
+            "recipient",
+            _doubleQuotes(AddrPrecompile.getCosmosAddr(to))
+        );
+        string memory amt = _formatPayload(
+            "amount",
+            _doubleQuotes(Strings.toString(amount))
+        );
+        string memory req = _curlyBrace(
+            _formatPayload(
+                "transfer_from",
+                _curlyBrace(_join(fromAddr, _join(toAddr, amt, ","), ","))
+            )
+        );
+        _execute(req);
+        return true;
+    }
+
+    function _approve(
+        address owner,
+        address spender,
+        uint256 amount
+    ) internal override {
+        require(owner != address(0), "ERC20: approve from the zero address");
         require(spender != address(0), "ERC20: approve to the zero address");
+
         string memory spenderAddr = _formatPayload(
             "spender",
             _doubleQuotes(AddrPrecompile.getCosmosAddr(spender))
         );
+
+        // reset allowance to zero
+        uint256 currentAllowance = allowance(owner, spender);
+        if (currentAllowance > 0) {
+            string memory amtDecrease = _formatPayload(
+                "amount",
+                _doubleQuotes(Strings.toString(currentAllowance))
+            );
+
+            string memory decreaseAllowanceReq = _curlyBrace(
+                _formatPayload(
+                    "decrease_allowance",
+                    _curlyBrace(_join(spenderAddr, amtDecrease, ","))
+                )
+            );
+            _execute(decreaseAllowanceReq);
+        }
+
         string memory amt = _formatPayload(
             "amount",
             _doubleQuotes(Strings.toString(amount))
@@ -142,7 +199,7 @@ contract CW20ERC20Token is ERC20, Ownable {
         );
         _execute(req);
 
-        return true;
+        emit Approval(owner, spender, amount);
     }
 
     function _execute(string memory req) internal returns (bytes memory) {
