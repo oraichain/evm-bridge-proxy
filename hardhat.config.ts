@@ -27,7 +27,7 @@ const config: HardhatUserConfig = {
 
   networks: {
     testing: {
-      url: "http://localhost:8545",
+      url: "http://0.0.0.0:8545",
       accounts,
     },
     hardhat: {
